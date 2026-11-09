@@ -7,18 +7,15 @@ on:
         description: Only verify login and friends without sending
         type: boolean
         default: false
-  #使用github actions的日程 可以把下面的这三行代码注释删掉  用外部的不用管 
-  # schedule:
-  #   - cron: "0 0 * * *"
-  #     timezone: "Asia/Shanghai"
-
+  schedule:
+    - cron: "30 17 * * *"
 concurrency:
   group: douyin-daily-sender
   cancel-in-progress: false
 
 jobs:
   send:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, douyin]
     timeout-minutes: 30
     permissions:
       contents: read
@@ -34,7 +31,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
-      - run: python -m playwright install --with-deps chromium
+      - run: python -m playwright install chromium
       - name: Write protected configuration
         shell: bash
         run: printf '%s' "$DOUYIN_CONFIG" > config.json
