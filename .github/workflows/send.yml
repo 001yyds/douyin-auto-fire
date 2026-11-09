@@ -27,11 +27,16 @@ jobs:
       HEADLESS: "true"
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: pip install -r requirements.txt
-      - run: python -m playwright install chromium
+      - name: Prepare Python environment
+        shell: bash
+        run: |
+          VENV="${HOME}/douyin-runner-venv"
+          if [ ! -x "${VENV}/bin/python" ]; then
+            python3 -m venv "${VENV}"
+          fi
+          "${VENV}/bin/python" -m pip install --quiet --upgrade pip
+          "${VENV}/bin/python" -m pip install --quiet -r requirements.txt
+          "${VENV}/bin/python" -m playwright install chromium
       - name: Write protected configuration
         shell: bash
         run: printf '%s' "$DOUYIN_CONFIG" > config.json
@@ -107,9 +112,9 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.dry_run }}" == "true" ]]; then
-            python run.py --dry-run
+            "${HOME}/douyin-runner-venv/bin/python" run.py --dry-run
           else
-            python run.py
+            "${HOME}/douyin-runner-venv/bin/python" run.py
           fi
       - name: Upload diagnostics
         if: failure()
